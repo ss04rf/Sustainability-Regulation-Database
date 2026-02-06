@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Sustainability Regulations Database - Complete Edition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>.card{transition:all .3s}.card:hover{transform:translateY(-2px);box-shadow:0 10px 15px -3px rgba(0,0,0,.1)}</style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen p-6">
+<div id="app" class="max-w-7xl mx-auto"></div>
+<script>
+const REGS=[
+{id:1,n:"Corporate Sustainability Reporting Directive (CSRD)",a:"CSRD",ty:"Reporting",st:"In Force - MAJOR SIMPLIFICATION Dec 2025",ps:"Stable (simplified)",ef:"2024-01-05",ap:"FY2027",ind:["All","Financial Services","Manufacturing"],sc:"FROM FY2027: 1000+ employees AND €450M+ turnover. Listed SMEs EXEMPT.",si:"Suppliers ≤1000 employees PROTECTED - can refuse detailed data.",kr:["Double materiality assessment","ESRS standards","Third-party assurance","Digital tagging","Value chain capped","Suppliers ≤1000 can refuse data"],pe:"Member state fines",d:"Omnibus I Dec 16, 2025. 85% reduction: 50,000→7,500 companies. Listed SMEs EXEMPT.",pn:"OMNIBUS I ADOPTED Dec 16, 2025. Transposition within 12 months. Wave 1 exemption available.",lr:"2025-12-16",l:(s)=>{if(s.e>=1000&&s.t>=450)return{p:"high",ty:"Direct (FY2027)"};if(s.li&&s.e>=250)return{p:"none",ty:"EXEMPT - Listed SMEs"};return{p:"low",ty:"PROTECTED - refuse data"};}},
+{id:2,n:"European Sustainability Reporting Standards (ESRS)",a:"ESRS",ty:"Reporting Standards",st:"In Force - Simplified July 2025",ps:"Stable",ef:"2023-07-31",ap:"FY2024",ind:["All"],sc:"All companies subject to CSRD",si:"Voluntary VSME standards. Protected under Omnibus I.",kr:["12 cross-cutting standards","E1-E5: Climate, Pollution, Water, Biodiversity, Circular","S1-S4: Workforce, Value chain, Communities, Consumers","G1: Business Conduct","Sector-specific VOLUNTARY"],pe:"Via CSRD",d:"Simplified July 2025. Sector-specific voluntary.",lr:"2025-12-16",l:(s)=>{if(s.e>=1000&&s.t>=450)return{p:"high",ty:"Direct (if CSRD)"};return{p:"low",ty:"Indirect (VSME)"};}},
+{id:3,n:"EU Taxonomy Regulation",a:"Taxonomy",ty:"Classification",st:"In Force",ps:"Stable",ef:"2020-07-12",ap:"2022 (phased)",ind:["All","Financial Services"],sc:"Financial participants; Large companies (CSRD scope)",si:"Provide data to financial institutions. Reduced trickle-down.",kr:["Report % revenue/CapEx/OpEx aligned","Substantial contribution","DNSH","Minimum Social Safeguards","Technical screening criteria"],pe:"Via CSRD/SFDR",d:"Classification for sustainable activities. Scope reduced with CSRD.",l:(s)=>{if(s.e>=1000&&s.t>=450)return{p:"high",ty:"Direct"};return{p:"low",ty:"Indirect"};}},
+{id:4,n:"Sustainable Finance Disclosure Regulation (SFDR)",a:"SFDR",ty:"Disclosure",st:"In Force",ps:"Stable",ef:"2021-03-10",ap:"2021",ind:["Financial Services"],sc:"Financial market participants and advisers",si:"Data requests from investors (reduced)",kr:["Entity-level disclosures","Product-level (Articles 8 & 9)","PAI reporting","Website disclosures"],pe:"Authority sanctions",d:"Financial participant sustainability disclosures.",l:(s)=>({p:"none",ty:"Financial participants only"})},
+{id:5,n:"Corporate Sustainability Due Diligence Directive (CSDDD)",a:"CSDDD",ty:"Due Diligence",st:"In Force - MAJOR SIMPLIFICATION Dec 2025",ps:"Stable (simplified)",ef:"2024-05-24",ap:"July 2029",ind:["All","Manufacturing"],sc:"5000+ employees AND €1.5B+ turnover. 70% reduction.",si:"Supply chain questionnaires, but 70% fewer companies.",kr:["Integrate due diligence","Identify impacts","Focus DIRECT partners","Prevent/mitigate/remediate","Complaints procedure","Monitor effectiveness","Transition plan REMOVED"],pe:"Fines 3% (down from 5%)",d:"Omnibus I Dec 16, 2025. 70% reduction. Fines 3%. No mandatory transition plan.",pn:"OMNIBUS I ADOPTED Dec 16, 2025. Transposition July 2028. Compliance July 2029. Civil liability removed.",lr:"2025-12-16",l:(s)=>{if(s.e>=5000&&s.t>=1500)return{p:"high",ty:"Direct (July 2029)"};return{p:"low",ty:"Indirect (far fewer)"};}},
+{id:6,n:"Carbon Border Adjustment Mechanism (CBAM)",a:"CBAM",ty:"Carbon Pricing",st:"In Force (Transitional)",ps:"Under review",ef:"2023-10-01",ap:"2023 (reporting), 2026 (financial)",ind:["Manufacturing","Energy"],sc:"Importers of cement, iron, steel, aluminum, fertilizers, electricity, hydrogen",si:"Small importers comply. Non-EU SMEs provide emissions data.",kr:["Report embedded emissions","Purchase CBAM certificates from 2026","Surrender certificates","Maintain records","Annual declaration"],pe:"Fines, import restrictions",d:"Carbon price on imports to prevent leakage.",l:(s)=>({p:"medium",ty:"Direct if importing covered goods"})},
+{id:7,n:"EU Emissions Trading System (ETS)",a:"EU ETS",ty:"Carbon Pricing",st:"In Force",ps:"Stable",ef:"2005",ap:"Phase IV: 2021-2030",ind:["Energy","Manufacturing"],sc:"Power plants >20 MW; Industrial facilities; Aviation; Maritime >5000 tonnage",si:"Direct for covered installations. Indirect: higher energy costs.",kr:["Monitor/report emissions annually","Surrender allowances","Verify by accredited verifier","Cap-and-trade compliance","Free allocation or auction"],pe:"€100/tonne excess, publication",d:"Cap-and-trade limiting GHG emissions.",l:(s)=>({p:"medium",ty:"Direct if operating covered installations"})},
+{id:8,n:"Energy Efficiency Directive (EED)",a:"EED",ty:"Energy",st:"In Force (Revised 2023)",ps:"Stable",ef:"2023-10-10",ap:"2024",ind:["All","Energy","Manufacturing"],sc:"Large enterprises (>250 employees or >€50M turnover)",si:"SMEs benefit from energy programs.",kr:["Energy audits every 4 years (large)","Energy management systems","Heating/cooling efficiency","Public building renovation 3%/year","Energy savings targets"],pe:"Member state enforcement",d:"Binding energy efficiency targets.",l:(s)=>{if(s.e>=250||s.t>=50)return{p:"high",ty:"Direct (Audits every 4 years)"};return{p:"low",ty:"Indirect"};}},
+{id:9,n:"Renewable Energy Directive (RED III)",a:"RED III",ty:"Energy",st:"In Force",ps:"Stable",ef:"2023-11-20",ap:"2024-2030",ind:["Energy","Transport"],sc:"Energy producers, fuel suppliers, industry sectors",si:"Benefit from renewable incentives; transport/industrial face targets.",kr:["42.5% renewable by 2030","RFNBO targets","Transport: 29% GHG reduction by 2030","Industry: 1.6% annual increase","Bioenergy sustainability criteria"],pe:"Member state enforcement",d:"Renewable energy targets across sectors.",l:(s)=>({p:"low",ty:"Indirect"})},
+{id:10,n:"Battery Regulation",a:"Battery Reg",ty:"Product/Circular Economy",st:"In Force",ps:"Stable",ef:"2023-08-17",ap:"2024-2031 (phased)",ind:["Manufacturing","Automotive","Electronics"],sc:"All operators placing batteries on EU market (all sizes)",si:"SME producers/importers: labeling, due diligence, passport.",kr:["Carbon footprint declaration","Raw materials due diligence","Minimum recycled content","Collection/recycling targets","Digital passport from 2027","Performance/durability requirements"],pe:"Market surveillance, fines, withdrawal",d:"Comprehensive lifecycle regulation for batteries.",l:(s)=>({p:"medium",ty:"Direct if placing batteries"})},
+{id:11,n:"Ecodesign for Sustainable Products Regulation (ESPR)",a:"ESPR",ty:"Product/Circular Economy",st:"In Force - Product rules phased 2025+",ps:"Stable",ef:"2024-07-18",ap:"2024 onwards",ind:["Manufacturing","Electronics","Textile"],sc:"Manufacturers, importers placing covered products (via delegated acts)",si:"SME manufacturers meet ecodesign requirements. Costs vary by category.",kr:["Durability/reparability standards","Recycled content","Digital Product Passport (DPP)","Environmental footprint info","Restrictions on unsold goods destruction","Energy efficiency"],pe:"Market surveillance, recalls, fines",d:"Framework for ecodesign requirements across products.",l:(s)=>({p:"medium",ty:"Direct if manufacturing covered products"})},
+{id:12,n:"Packaging and Packaging Waste Regulation (PPWR)",a:"PPWR",ty:"Circular Economy",st:"In Force - Application Aug 2026",ps:"Stable",ef:"2025-02-26",ap:"Aug 2026 (phased)",ind:["All","Retail","Manufacturing"],sc:"All packaging on EU market. Lighter rules for micro (<10 employees, <€2M)",si:"SMEs comply with design, recycled content. Micro: simplified.",kr:["Recycled content minimums (2030, 2040)","Packaging reduction targets","Reuse/refill systems","Format restrictions","Design for recycling","Labeling requirements","PFAS restrictions from 2026"],pe:"Member state enforcement, fines",d:"Regulation (EU) 2025/40 making all packaging recyclable.",l:(s)=>{if(s.e<10&&s.t<2)return{p:"medium",ty:"Direct (simplified micro)"};return{p:"high",ty:"Direct if placing packaging"};}},
+{id:13,n:"Deforestation Regulation (EUDR)",a:"EUDR",ty:"Supply Chain",st:"In Force - Under revision",ps:"Under review",ef:"2023-06-29",ap:"30 Dec 2025 (proposed: 30 Dec 2026)",ind:["Agriculture","Food & Beverage","Forestry"],sc:"Operators placing cattle, cocoa, coffee, palm, rubber, soya, wood. All sizes.",si:"SME operators conduct DD. Proposed: micro/small simplified; extended to 30 Jun 2027.",kr:["Due diligence system","Products deforestation-free (post 31 Dec 2020)","Geolocation data","Risk assessment","Risk mitigation","EU Information System declaration","Proposed: downstream no separate statements"],pe:"Fines 4% annual EU turnover, confiscation",d:"Prohibits deforestation products. Further delay/simplification proposed Nov 2025.",pn:"Council backs further 1-year delay (30 Dec 2026 large/medium, 30 Jun 2027 micro/small) plus 30% admin reduction. EP negotiations ongoing.",lr:"2025-11-28",l:(s)=>{if(s.e<50&&s.t<10)return{p:"medium",ty:"Direct (simplified)"};return{p:"high",ty:"Direct if trading commodities"};}},
+{id:14,n:"Single-Use Plastics Directive (SUP)",a:"SUP",ty:"Product/Waste",st:"In Force",ps:"Stable",ef:"2019-07-02",ap:"2021 (phased)",ind:["Food & Beverage","Retail","Hospitality"],sc:"Producers of SUP products; food service; retailers",si:"SME producers/food service comply with bans, design requirements.",kr:["Market restrictions on SUP items","Consumption reduction targets","Design requirements (e.g., attached caps)","Labeling requirements","Extended Producer Responsibility","Separate collection targets (90% bottles by 2029)"],pe:"Member state enforcement, fines, bans",d:"Reduces plastic product impact by banning/restricting/mandating design changes.",l:(s)=>({p:"medium",ty:"Direct if producing/using SUP"})},
+{id:15,n:"Green Claims Directive (Proposal)",a:"GCD",ty:"Marketing/Consumer Protection",st:"Uncertain - Under political review",ps:"Uncertain",ef:"TBD",ap:"TBD (if adopted)",ind:["All","Retail"],sc:"Traders making voluntary environmental claims",si:"Would affect SMEs making green claims; pre-approval burden.",kr:["Substantiate claims with science","Independent verification","Restrictions on generic claims","Clear communication","Prohibition of misleading labels","Pre-approval by authorities"],pe:"TBD",d:"Proposed to combat greenwashing. Commission signaled potential withdrawal.",pn:"Commission signaled withdrawal. Greenwashing via Empowering Consumers Directive.",l:(s)=>({p:"low",ty:"Uncertain - may be withdrawn"})},
+{id:16,n:"Conflict Minerals Regulation",a:"CMR",ty:"Supply Chain",st:"In Force",ps:"Stable",ef:"2017-01-01",ap:"2021",ind:["Manufacturing","Electronics","Automotive"],sc:"EU importers of tin, tantalum, tungsten, gold (3TG) above thresholds",si:"SME importers above thresholds comply. Downstream SMEs face questionnaires.",kr:["Identify/assess supply chain risks","Implement due diligence","Third-party audit","Public disclosure","Report to authorities"],pe:"Fines, import restrictions, publication",d:"Supply chain due diligence for conflict minerals importers.",l:(s)=>({p:"medium",ty:"Direct if importing 3TG above thresholds"})},
+{id:17,n:"Industrial Emissions Directive (IED)",a:"IED",ty:"Environmental",st:"In Force (Revision expected 2025)",ps:"Under revision",ef:"2011 (Revision: 2025+)",ap:"Ongoing",ind:["Manufacturing","Energy","Chemicals"],sc:"Industrial installations above thresholds (energy >50 MW, livestock >40k poultry/2k pigs)",si:"Larger SMEs operating installations above thresholds. Revision may lower thresholds.",kr:["Permit based on Best Available Techniques (BAT)","Emission limit values","Environmental management systems","Monitor/report emissions","Baseline reports","Site remediation upon closure"],pe:"Permit suspension, fines, criminal liability",d:"Controls pollution from industrial installations via integrated permitting.",l:(s)=>({p:"medium",ty:"Direct if operating installations above thresholds"})},
+{id:18,n:"Alternative Investment Fund Managers Directive (AIFMD)",a:"AIFMD",ty:"Financial Regulation",st:"In Force",ps:"Stable",ef:"2013",ap:"Ongoing",ind:["Financial Services"],sc:"AIFMs managing/marketing AIFs in EU",si:"Portfolio companies (including SMEs) may receive ESG data requests.",kr:["Integrate ESG risks","Consider sustainability risks in decisions","Disclosure of sustainability info","Due diligence on sustainability","PAI reporting per SFDR"],pe:"Regulatory sanctions, license revocation",d:"Regulates alternative investment fund managers; sustainability aligned with SFDR.",l:(s)=>({p:"none",ty:"Only AIFMs"})},
+{id:19,n:"Waste Framework Directive (WFD)",a:"WFD",ty:"Waste Management",st:"In Force",ps:"Stable",ef:"2008 (amended 2018)",ap:"Ongoing",ind:["All","Manufacturing"],sc:"All operators producing, collecting, transporting, recovering, disposing waste; EPR for specific streams",si:"SMEs comply with waste hierarchy, separation, may be subject to EPR fees.",kr:["Waste hierarchy: prevention, reuse, recycling, recovery, disposal","Extended Producer Responsibility","Separate collection (paper, metal, plastic, glass, bio)","Recycling targets: 55% by 2025, 65% by 2035","Landfill max 10% by 2035","Waste prevention programs"],pe:"Member state enforcement, fines",d:"Legal framework for waste treatment, defining waste hierarchy.",l:(s)=>({p:"medium",ty:"Direct (all waste producers)"})},
+{id:20,n:"EU Climate Law",a:"Climate Law",ty:"Climate",st:"In Force",ps:"Stable",ef:"2021-07-29",ap:"Immediate",ind:["All"],sc:"EU-wide binding framework affecting all Member States",si:"Climate neutrality drives all other climate/energy legislation affecting SMEs.",kr:["Climate neutrality by 2050 (binding)","55% emission reduction by 2030 (vs 1990)","EU Adaptation Strategy","Assessment of national measures","Regular progress reviews","Climate mainstreaming across policies"],pe:"Political/legal accountability mechanisms",d:"Legally binding commitment to 2050 climate neutrality and 2030 interim target.",l:(s)=>({p:"low",ty:"Indirect (framework)"})},
+{id:21,n:"Pay Transparency Directive",a:"Pay Transparency",ty:"Social/Employment",st:"In Force - Implementation June 2026",ps:"Stable",ef:"2023-05-24",ap:"June 2026",ind:["All"],sc:"All employers; reporting thresholds based on size (>100 employees)",si:"SMEs >100: report gap every 3 years. >150: annually. <100: pay transparency only.",kr:["Pay transparency in job ads","Right to info on pay levels","Gender pay gap reporting (>100)","Joint assessment if gap >5% unjustified","Prohibition on pay secrecy clauses","Compensation for victims"],pe:"Fines, compensation, potential criminal penalties",d:"Mandatory pay transparency and gender pay gap reporting.",l:(s)=>{if(s.e>=150)return{p:"high",ty:"Direct (Annual reporting)"};if(s.e>=100)return{p:"high",ty:"Direct (Every 3 years)"};if(s.e>=1)return{p:"medium",ty:"Direct (Pay transparency)"};return{p:"none",ty:"Not applicable"};}},
+{id:22,n:"Whistleblower Protection Directive",a:"Whistleblower",ty:"Governance/Compliance",st:"In Force",ps:"Stable",ef:"2019-12-16",ap:"Dec 2021",ind:["All"],sc:"Private sector entities >50 employees; All public sector",si:"SMEs 50-249: establish internal reporting channels since Dec 2023.",kr:["Internal reporting channels (written/oral, hotlines)","Clear procedures: receive, follow-up, feedback","Protection from retaliation","Confidentiality of whistleblower","Acknowledgement within 7 days","Follow-up within 3 months"],pe:"Member State sanctions, retaliation liability",d:"Minimum standards for whistleblower protection. Core governance infrastructure.",l:(s)=>{if(s.e>=50)return{p:"high",ty:"Direct (Internal channels required)"};return{p:"none",ty:"Not applicable"};}},
+{id:23,n:"Forced Labour Regulation",a:"Forced Labour Ban",ty:"Supply Chain/Human Rights",st:"In Force - Application Dec 2027",ps:"Stable",ef:"2024-12-13",ap:"2027-12-13",ind:["All"],sc:"All products made with forced labour banned. All operators regardless of size.",si:"SMEs ensure products/supply chains forced labour-free. Expect DD questionnaires.",kr:["Products with forced labour banned from EU market/exports","Risk-based enforcement","DD documentation required on request","Customs cooperation","EU-wide risk database","Authorities can require withdrawal/disposal"],pe:"Product confiscation, destruction, market bans, fines",d:"Bans forced labour products from EU market. Complements CSDDD.",pn:"Major human rights enforcement tool. Requires CSDDD DD systems coordination.",l:(s)=>({p:"high",ty:"Direct (all products)"})},
+{id:24,n:"Empowering Consumers for Green Transition",a:"Empowering Consumers",ty:"Consumer Protection/Greenwashing",st:"In Force - Implementation March 2026",ps:"Stable",ef:"2024-03-06",ap:"March 2026",ind:["All","Retail"],sc:"All traders making commercial claims to consumers",si:"SMEs ensure marketing/labeling complies with greenwashing prohibitions.",kr:["Ban generic claims without proof ('eco', 'green', 'sustainable')","Ban claims based solely on offsetting without disclosure","Ban unsubstantiated claims","Ban voluntary labels not verified/certified","Enhanced durability/reparability info","Ban misleading obsolescence"],pe:"Fines up to 4% annual turnover in Member State; product recalls",d:"Amends Unfair Commercial Practices Directive to ban greenwashing. Key anti-greenwashing tool.",l:(s)=>({p:"high",ty:"Direct if making environmental claims"})},
+{id:25,n:"Nature Restoration Regulation",a:"Nature Restoration",ty:"Environmental/Biodiversity",st:"In Force",ps:"Politically contentious",ef:"2024-08-18",ap:"Immediate (plans due 2026)",ind:["Agriculture","Forestry","Infrastructure"],sc:"EU-wide binding targets via National Restoration Plans",si:"SMEs in agriculture, forestry, construction may face tighter permitting, land-use restrictions.",kr:["Restore ≥20% EU land/sea by 2030","Restore all ecosystems in need by 2050","Member State plans due 2026","Specific targets: forests, agricultural, marine, urban ecosystems","No deterioration principle","Monitoring/reporting"],pe:"EU infringement proceedings if Member States fail; national land-use enforcement",d:"Legally binding ecosystem restoration targets. Drives national implementation affecting land use.",pn:"Adopted after contentious negotiations; ongoing political pushback in some Member States.",l:(s)=>({p:"low",ty:"Indirect (national implementation)"})},
+{id:26,n:"EU Green Bond Standard",a:"EU GBS",ty:"Sustainable Finance",st:"In Force",ps:"Stable",ef:"2023-10-09",ap:"2024-12-21",ind:["Financial Services"],sc:"Voluntary for bond issuers wishing to use 'European Green Bond' (EuGB) designation",si:"SMEs issuing bonds can use voluntary label. SMEs receiving EuGB proceeds provide Taxonomy data.",kr:["Proceeds finance Taxonomy-aligned activities","Allocation/impact reporting","External review by registered reviewers","European Green Bond Factsheet","ESMA supervision for reviewers","Optional for other sustainability bonds"],pe:"Loss of designation, ESMA enforcement, reputational damage",d:"Voluntary 'gold standard' for green bonds aligned with EU Taxonomy.",l:(s)=>({p:"low",ty:"Indirect (voluntary for bond issuers)"})},
+{id:27,n:"Net-Zero Industry Act (NZIA)",a:"NZIA",ty:"Industrial Policy",st:"In Force",ps:"Stable",ef:"2024-06-29",ap:"Immediate",ind:["Manufacturing","Energy","Cleantech"],sc:"Strategic net-zero technologies; affects public procurement, permitting, project developers",si:"SME manufacturers of net-zero tech benefit from faster permitting, procurement criteria.",kr:["Streamlined permitting for net-zero projects (9-18 months)","EU manufacturing capacity: 40% of deployment needs by 2030","Public procurement: sustainability/resilience criteria","Net-Zero Europe Platform","InvestEU and Innovation Fund access","Net-Zero Industry Academies"],pe:"Not a compliance regulation; industrial policy framework",d:"Industrial policy to scale up EU cleantech manufacturing. Focus on competitiveness.",l:(s)=>({p:"low",ty:"Indirect (benefits cleantech)"})},
+{id:28,n:"IFRS S1 - General Requirements",a:"IFRS S1",ty:"Reporting Standards",st:"In Force (Global - not EU law)",ps:"Stable",ef:"2024-01-01",ap:"2024 onwards (jurisdiction-dependent)",ind:["All","Financial Services"],sc:"Global standard by ISSB. 36+ jurisdictions (≈60% global GDP) adopting. Not adopted by EU.",si:"Large companies using IFRS S1/S2 request sustainability data from SME suppliers.",kr:["General framework for sustainability-related financial disclosures","Focus on financial materiality (investor perspective)","Connectivity to financial statements","Governance, strategy, risk management, metrics/targets","Proportionality principle","Industry-specific metrics (SASB)","Aligned with financial reporting period"],pe:"Not directly applicable - enforcement depends on jurisdiction",d:"Global baseline standard for sustainability disclosures by ISSB. Incorporates SASB metrics.",ln:"International Reporting Standard",pn:"High interoperability with ESRS (≈80% alignment on climate). EU companies with global operations often prepare both.",l:(s)=>({p:"low",ty:"Indirect if in adopting jurisdictions"})},
+{id:29,n:"IFRS S2 - Climate-related Disclosures",a:"IFRS S2",ty:"Reporting Standards",st:"In Force (Global - not EU law)",ps:"Stable",ef:"2024-01-01",ap:"2024 onwards (jurisdiction-dependent)",ind:["All","Financial Services"],sc:"Global climate standard by ISSB. Replaces TCFD. Adopted by 20+ jurisdictions.",si:"Supply chain implications as large companies request Scope 3 emissions data.",kr:["Climate-related financial disclosures (TCFD framework)","Scope 1, 2, 3 GHG emissions (GHG Protocol)","Physical/transition climate risks/opportunities","Climate resilience assessment (scenario analysis)","Climate targets/progress","Industry metrics (SASB)","Transition relief Scope 3 year 1"],pe:"Not directly applicable - enforcement depends on jurisdiction",d:"Global climate disclosure standard. Fully aligned with California SB 261.",ln:"International Reporting Standard",pn:"High interoperability with ESRS E1 (≈80% alignment). Key difference: IFRS S2 uses financial materiality only; ESRS uses double materiality.",l:(s)=>({p:"low",ty:"Indirect if in adopting jurisdictions"})},
+{id:30,n:"NATO Green Defence Framework",a:"NATO Green Defence",ty:"Defence Policy/Framework",st:"In Force (Policy Framework)",ps:"Stable",ef:"2014-02",ap:"2014 (ongoing)",ind:["Defence & Security"],sc:"NATO Alliance-level framework. Not binding EU law but influential for NATO-country policies.",si:"Defence SMEs benefit from NATO member states' green procurement priorities.",kr:["Operational effectiveness through efficient energy use","Capability development (green tech, smart energy)","Engagement (training, partnerships, best-practice)","Energy efficiency in military installations","Reduced environmental footprint in operations"],pe:"Not legally binding; political commitment",d:"NATO's first structured approach to 'greening' defence.",ln:"Policy Framework",l:(s)=>({p:"low",ty:"Indirect (defence sector)"})},
+{id:31,n:"NATO Climate Change and Security Action Plan",a:"NATO CCSAP",ty:"Climate & Security",st:"In Force (Policy Framework)",ps:"Stable",ef:"2021-06",ap:"2021 (ongoing)",ind:["Defence & Security"],sc:"NATO-wide climate security framework. Commits all Allies to integrate climate into defence planning.",si:"Creates demand for climate-resilient defence solutions, green military tech.",kr:["Integrate climate risks into planning, operations, capability development","Adapt infrastructure/forces to climate impacts","Mitigate emissions from NATO structures/facilities","Deepen EU and UN cooperation","Climate impact assessments for major projects"],pe:"Not legally binding; political commitment",d:"NATO's overarching climate-security framework succeeding Green Defence Framework.",ln:"Policy Framework",l:(s)=>({p:"low",ty:"Indirect (defence sector)"})},
+{id:32,n:"EU Climate Change and Defence Roadmap",a:"EU CCD Roadmap",ty:"Climate & Security",st:"In Force (Policy/Roadmap)",ps:"Stable",ef:"2020-11",ap:"2020 (phased 2020-2025+)",ind:["Defence & Security"],sc:"EU-level roadmap by EEAS, Commission, European Defence Agency",si:"Defence SMEs align with EU green defence priorities. Expect environmental criteria in EU defence procurement.",kr:["Green EU defence operations and CSDP missions","Climate-resilient defence capabilities/infrastructure","Align defence with European Green Deal","Short (2020-21), medium (2022-24), long-term (2025+) actions","Integrate climate into capability development","Strengthen partnerships"],pe:"Not legally binding; policy roadmap",d:"EU roadmap linking defence and climate policy as part of European Green Deal.",ln:"Policy/Roadmap",l:(s)=>({p:"low",ty:"Indirect (defence sector)"})},
+{id:33,n:"Joint Communication on Climate-Security Nexus",a:"Climate-Security Nexus",ty:"Climate & Security",st:"In Force (Policy/Communication)",ps:"Stable",ef:"2023-06",ap:"2023",ind:["Defence & Security"],sc:"EU policy framework on climate-security linkages. Covers CSDP missions, military bases, critical infrastructure.",si:"Reinforces climate mainstreaming in defence/security. Track related funding/procurement opportunities.",kr:["Climate change as core theme of EU external action","Climate-security in CSDP missions/operations","Resilience of military bases and critical infrastructure","Early warning systems for climate-security risks","Partnerships with third countries","Builds on 2020 CCD Roadmap"],pe:"Not legally binding; policy communication",d:"2023 Joint Communication making climate-security core to EU external action.",ln:"Policy/Communication",l:(s)=>({p:"low",ty:"Indirect (defence/infrastructure)"})},
+{id:34,n:"Commission Notice on Sustainable Finance and Defence",a:"SF & Defence Notice",ty:"Guidance",st:"In Force (Guidance)",ps:"Stable",ef:"2025-03",ap:"2025",ind:["Financial Services","Defence & Security"],sc:"Commission guidance clarifying how sustainable finance rules (Taxonomy, SFDR, CSRD) apply to defence investments.",si:"Defence SMEs seeking ESG-compliant financing should understand this guidance.",kr:["EU sustainable finance framework sets no limitations on financing defence","Defence investments assessed case-by-case","SFDR does not prevent financing of defence","Taxonomy alignment depends on specific activities (e.g., energy efficiency on bases)","CSRD reporting applies to large defence companies","Investors conduct due diligence on ESG risks"],pe:"Guidance; no direct penalties. Compliance with SFDR/Taxonomy/CSRD mandatory.",d:"Clarifies EU sustainable finance rules don't exclude defence. Part of ReArm Europe package.",ln:"Guidance",pn:"Issued as part of 2025 ReArm Europe agenda to facilitate defence investment amid geopolitical tensions.",l:(s)=>({p:"low",ty:"Indirect (defence/finance)"})}
+];
+
+const CL=[
+{d:"2025-12-16",rn:"CSRD",c:"MAJOR UPDATE: Omnibus I adopted. New thresholds: 1000+ employees AND €450M+ turnover (FY2027). 85% reduction. Listed SMEs EXEMPT.",r:"Database Admin",s:"European Parliament, Dec 16, 2025"},
+{d:"2025-12-16",rn:"CSDDD",c:"MAJOR UPDATE: Omnibus I adopted. New thresholds: 5000+ employees AND €1.5B+ turnover. 70% reduction. Fines 3%. Mandatory transition plan removed.",r:"Database Admin",s:"European Parliament, Dec 16, 2025"},
+{d:"2025-11-28",rn:"EUDR",c:"Further 1-year delay proposed to Dec 2026. 30% admin burden reduction. Downstream operators no longer submit separate statements.",r:"Database Admin",s:"Council of EU, Nov 19, 2025"}
+];
+
+const PR=[{n:"Micro (<10)",e:5,t:1,li:false},{n:"Small (10-49)",e:25,t:8,li:false},{n:"Medium (50-249)",e:120,t:30,li:false},{n:"Large (250-999)",e:500,t:200,li:false},{n:"Very Large (1000+)",e:1500,t:600,li:false},{n:"Listed SME",e:120,t:30,li:true}];
+
+let ST={s:'',fi:{i:'all',ty:'all',st:'all',ps:'all'},cs:{e:'',t:'',li:false,a:false},ex:null,cl:false,um:false};
+
+function calc(r,s){if(!r.l||!s.e&&!s.t)return{p:'medium',ty:'Review manually'};return r.l({e:parseInt(s.e)||0,t:parseFloat(s.t)||0,li:s.li});}
+
+function filt(){
+let f=REGS.filter(r=>{
+const ms=!ST.s||r.n.toLowerCase().includes(ST.s.toLowerCase())||r.a.toLowerCase().includes(ST.s.toLowerCase())||r.d.toLowerCase().includes(ST.s.toLowerCase());
+const mi=ST.fi.i==='all'||r.ind.includes(ST.fi.i);
+const mt=ST.fi.ty==='all'||r.ty===ST.fi.ty;
+const mst=ST.fi.st==='all'||r.st.includes(ST.fi.st);
+const mps=ST.fi.ps==='all'||r.ps===ST.fi.ps;
+return ms&&mi&&mt&&mst&&mps;
+});
+if(ST.cs.a&&(ST.cs.e||ST.cs.t)){
+f=f.map(r=>({...r,rel:calc(r,ST.cs)})).sort((a,b)=>({high:0,medium:1,low:2,none:3}[a.rel.p]||2)-({high:0,medium:1,low:2,none:3}[b.rel.p]||2));
+}
+return f;
+}
+
+function exp(){
+const f=filt();
+const h=f.filter(r=>r.rel&&r.rel.p==='high');
+const m=f.filter(r=>r.rel&&r.rel.p==='medium');
+let txt='EU SUSTAINABILITY REGULATIONS - COMPANY RELEVANCE REPORT\n';
+txt+='Generated: '+new Date().toLocaleDateString()+'\n'+'='.repeat(70)+'\n\n';
+if(ST.cs.e||ST.cs.t){
+txt+='COMPANY PROFILE:\n';
+if(ST.cs.e)txt+='• Employees: '+ST.cs.e+'\n';
+if(ST.cs.t)txt+='• Turnover: €'+ST.cs.t+'M\n';
+txt+='• Status: '+(ST.cs.li?'Listed':'Private')+'\n\n';
+}
+txt+='SUMMARY:\n• High Priority: '+h.length+'\n• Medium Priority: '+m.length+'\n\n';
+if(h.length>0){
+txt+='HIGH PRIORITY - DIRECT OBLIGATIONS\n'+'='.repeat(70)+'\n\n';
+h.forEach((r,i)=>{txt+=(i+1)+'. '+(r.a||r.n)+'\n   Relevance: '+r.rel.ty+'\n   Applicable: '+r.ap+'\n   '+r.d+'\n\n';});
+}
+if(m.length>0){
+txt+='\nMEDIUM PRIORITY\n'+'='.repeat(70)+'\n\n';
+m.forEach((r,i)=>{txt+=(i+1)+'. '+(r.a||r.n)+' - '+r.rel.ty+'\n';});
+}
+txt+='\n'+'='.repeat(70)+'\nGenerated by EU Sustainability Regulations Database\nLast update: December 2025\nAlways verify with official sources and legal counsel.\n';
+const blob=new Blob([txt],{type:'text/plain'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download='EU_Sustainability_Report_'+new Date().toISOString().split('T')[0]+'.txt';
+a.click();
+URL.revokeObjectURL(url);
+}
+
+function rend(){
+const f=filt();
+const app=document.getElementById('app');
+app.innerHTML=`
+<div class="mb-8">
+<h1 class="text-4xl font-bold text-slate-800 mb-2">EU Sustainability Regulations Database</h1>
+<p class="text-slate-600 mb-3">Complete Edition - ${REGS.length} Regulations with All Features</p>
+<div class="flex items-center gap-4 text-sm flex-wrap mb-4">
+<span class="text-slate-500">📅 December 2025</span>
+<span class="px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-lg font-bold">🚨 CSRD & CSDDD Omnibus I Dec 16, 2025</span>
+</div>
+<div class="flex gap-3 flex-wrap">
+<button onclick="ST.cs.a=!ST.cs.a;rend()" class="px-4 py-2 ${ST.cs.a?'bg-purple-600 text-white':'bg-purple-100 text-purple-700'} rounded-lg font-medium text-sm">🏢 ${ST.cs.a?'Company Filter Active':'Filter by Company Size'}</button>
+${ST.cs.a&&(ST.cs.e||ST.cs.t)?'<button onclick="exp()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm">📥 Export Report</button>':''}
+<button onclick="ST.cl=!ST.cl;rend()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm">📖 ${ST.cl?'Hide':'View'} Change Log (${CL.length})</button>
+<button onclick="ST.um=!ST.um;rend()" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm">📋 Manual Review Dates</button>
+</div>
+</div>
+${ST.cs.a?`<div class="mb-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow border-2 border-purple-200 p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold">🏢 Company Size Filter</h2>
+<button onclick="ST.cs.a=false;rend()" class="text-slate-400 hover:text-slate-600">✕</button>
+</div>
+<div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800"><strong>How it works:</strong> Enter details or choose preset to see relevant regulations.</div>
+<div class="mb-4">
+<label class="block text-sm font-medium mb-2">👥 Quick Presets</label>
+<div class="flex flex-wrap gap-2">
+${PR.map((p,i)=>`<button onclick="ST.cs={e:'${p.e}',t:'${p.t}',li:${p.li},a:true};rend()" class="px-3 py-1.5 bg-white border-2 border-purple-300 text-purple-700 rounded-lg text-sm font-medium">${p.n}</button>`).join('')}
+</div>
+</div>
+<div class="grid md:grid-cols-3 gap-4">
+<div><label class="block text-sm font-medium mb-2">Employees:</label><input type="number" id="emp" value="${ST.cs.e}" placeholder="e.g., 120" class="w-full px-3 py-2 border rounded-lg"></div>
+<div><label class="block text-sm font-medium mb-2">Turnover (€M):</label><input type="number" id="turn" value="${ST.cs.t}" placeholder="e.g., 25" class="w-full px-3 py-2 border rounded-lg"></div>
+<div><label class="block text-sm font-medium mb-2">Status:</label><div class="flex items-center h-10"><input type="checkbox" id="list" ${ST.cs.li?'checked':''} class="w-4 h-4"><label class="ml-2 text-sm">Publicly listed</label></div></div>
+</div>
+</div>`:''}
+${ST.cl?`<div class="mb-6 bg-white rounded-lg shadow border p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold">📖 Change Log</h2>
+<button onclick="ST.cl=false;rend()" class="text-slate-400 hover:text-slate-600">✕</button>
+</div>
+<div class="space-y-3">
+${CL.map(e=>`<div class="p-4 bg-slate-50 border rounded-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">${e.rn}</span>
+<span class="text-xs text-slate-500">⏰ ${e.d}</span>
+</div>
+<p class="text-sm text-slate-700 mb-2">${e.c}</p>
+<div class="flex gap-4 text-xs text-slate-500">
+<span><strong>Reviewed:</strong> ${e.r}</span>
+<span><strong>Source:</strong> ${e.s}</span>
+</div>
+</div>`).join('')}
+</div>
+</div>`:''}
+${ST.um?`<div class="mb-6 bg-white rounded-lg shadow border p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold">📋 Manual Review Dates</h2>
+<button onclick="ST.um=false;rend()" class="text-slate-400 hover:text-slate-600">✕</button>
+</div>
+<div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900 mb-4">
+<p class="font-semibold mb-2">ℹ️ Manual Tracking Only</p>
+<p>These dates show when each regulation was <strong>last manually verified</strong> and updated in this database. This feature does NOT automatically fetch updates from official sources. Always verify current status with official EU legal databases (EUR-Lex, Official Journal) for the most recent changes.</p>
+</div>
+<div class="space-y-2 max-h-96 overflow-y-auto">
+${REGS.map(r=>`<div class="p-3 bg-slate-50 border rounded-lg flex justify-between items-center">
+<div>
+<div class="font-medium text-slate-800">${r.a||r.n}</div>
+${r.lr?`<div class="text-xs text-slate-500 mt-1">Last manually verified: ${r.lr}</div>`:`<div class="text-xs text-slate-400 mt-1">No manual review date recorded</div>`}
+</div>
+</div>`).join('')}
+</div>
+</div>`:''}
+<div class="bg-white rounded-lg shadow border p-6 mb-6">
+<input type="text" id="search" value="${ST.s}" placeholder="🔍 Search regulations..." class="w-full px-4 py-2 border rounded-lg mb-4">
+<div class="grid md:grid-cols-4 gap-4">
+<div><label class="block text-sm font-medium mb-1">Industry</label><select id="fInd" class="w-full px-3 py-2 border rounded-lg text-sm">
+<option value="all">All</option>
+${['Financial Services','Manufacturing','Energy','Agriculture','Food & Beverage','Retail','Forestry','Defence & Security'].map(i=>`<option value="${i}" ${ST.fi.i===i?'selected':''}>${i}</option>`).join('')}
+</select></div>
+<div><label class="block text-sm font-medium mb-1">Type</label><select id="fTy" class="w-full px-3 py-2 border rounded-lg text-sm">
+<option value="all">All</option>
+${['Reporting','Due Diligence','Energy','Supply Chain','Social/Employment','Governance/Compliance','Consumer Protection/Greenwashing','Circular Economy','Climate','Defence Policy/Framework'].map(t=>`<option value="${t}" ${ST.fi.ty===t?'selected':''}>${t}</option>`).join('')}
+</select></div>
+<div><label class="block text-sm font-medium mb-1">Legal Status</label><select id="fSt" class="w-full px-3 py-2 border rounded-lg text-sm">
+<option value="all">All</option>
+${['In Force','Under revision','Uncertain'].map(s=>`<option value="${s}" ${ST.fi.st===s?'selected':''}>${s}</option>`).join('')}
+</select></div>
+<div><label class="block text-sm font-medium mb-1">Political Status</label><select id="fPs" class="w-full px-3 py-2 border rounded-lg text-sm">
+<option value="all">All</option>
+${['Stable','Stable (simplified)','Under review','Uncertain','Politically contentious'].map(p=>`<option value="${p}" ${ST.fi.ps===p?'selected':''}>${p}</option>`).join('')}
+</select></div>
+</div>
+</div>
+<div class="mb-4 text-slate-600">Showing ${f.length} of ${REGS.length} regulations</div>
+<div class="space-y-4">
+${f.length===0?'<div class="bg-white rounded-lg shadow border p-12 text-center"><p class="text-slate-500 text-lg">No regulations match your filters</p></div>':
+f.map(r=>`<div class="card bg-white rounded-lg shadow border overflow-hidden">
+<div class="p-5 cursor-pointer" onclick="ST.ex=ST.ex===${r.id}?null:${r.id};rend()">
+<div class="flex justify-between">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2 flex-wrap">
+<h3 class="text-xl font-semibold">${r.n}</h3>
+<span class="px-2 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded">${r.a}</span>
+</div>
+<p class="text-slate-600 text-sm mb-3">${r.d}</p>
+<div class="flex flex-wrap gap-2">
+${r.rel?`<span class="px-3 py-1 text-xs font-medium rounded-full border-2 ${r.rel.p==='high'?'bg-red-100 text-red-800 border-red-300':r.rel.p==='medium'?'bg-yellow-100 text-yellow-800 border-yellow-300':r.rel.p==='low'?'bg-green-100 text-green-700 border-green-300':'bg-slate-100 text-slate-600 border-slate-300'}">${r.rel.p==='high'?'🔴':r.rel.p==='medium'?'🟡':r.rel.p==='low'?'🟢':'⚪'} ${r.rel.ty}</span>`:''}
+<span class="px-3 py-1 text-xs font-medium rounded-full border ${r.st.includes('In Force')?'bg-green-100 text-green-800 border-green-300':'bg-yellow-100 text-yellow-800 border-yellow-300'}">${r.st}</span>
+<span class="px-3 py-1 text-xs font-medium rounded-full ${r.ps.includes('Stable')?'bg-slate-100 text-slate-700':'bg-yellow-100 text-yellow-800'}">${r.ps}</span>
+</div>
+</div>
+<button class="ml-4 text-slate-400 text-2xl">${ST.ex===r.id?'−':'+'}</button>
+</div>
+</div>
+${ST.ex===r.id?`<div class="px-5 pb-5 border-t pt-4 bg-slate-50">
+${r.pn?`<div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"><div class="font-semibold text-amber-900 text-sm mb-1">Political Context</div><p class="text-amber-800 text-sm">${r.pn}</p></div>`:''}
+<div class="grid md:grid-cols-2 gap-6">
+<div>
+<h4 class="font-semibold mb-2">Detailed Scope</h4>
+<p class="text-sm text-slate-600 mb-4 bg-white p-3 rounded border">${r.sc}</p>
+<h4 class="font-semibold mb-2">SME Impact</h4>
+<p class="text-sm text-slate-600 mb-4 bg-blue-50 p-3 rounded border border-blue-200">${r.si}</p>
+${r.ln?`<div class="text-sm mb-4 bg-purple-50 p-3 rounded border border-purple-200"><strong>Legal Nature:</strong> ${r.ln}</div>`:''}
+${r.lr?`<div class="text-sm"><strong>Last Reviewed:</strong> <span class="text-green-600">${r.lr}</span></div>`:''}
+</div>
+<div>
+<h4 class="font-semibold mb-2">Key Requirements</h4>
+<ul class="text-sm text-slate-600 space-y-1 mb-4 bg-white p-3 rounded border">
+${r.kr.map(k=>`<li class="flex items-start"><span class="text-blue-500 mr-2">•</span><span>${k}</span></li>`).join('')}
+</ul>
+<h4 class="font-semibold mb-2">Penalties</h4>
+<p class="text-sm text-slate-600 mb-4 bg-red-50 p-3 rounded border border-red-200">${r.pe}</p>
+<div class="text-sm text-slate-600 bg-white p-3 rounded border">
+<div><strong>Effective:</strong> ${r.ef}</div>
+<div><strong>Applicable:</strong> ${r.ap}</div>
+</div>
+</div>
+</div>
+</div>`:''}
+</div>`).join('')}
+</div>
+<div class="mt-8 p-6 bg-white rounded-lg shadow border">
+<h3 class="font-semibold text-lg mb-3">About This Database</h3>
+<p class="text-sm text-slate-600 mb-2">Complete standalone database with ${REGS.length} EU sustainability regulations including December 2025 Omnibus I updates.</p>
+<ul class="list-disc list-inside space-y-1 text-sm text-slate-600 ml-2 mb-3">
+<li><strong>December 2025 Updates:</strong> CSRD & CSDDD Omnibus I with dramatically reduced scope</li>
+<li><strong>Company Size Filter:</strong> Smart relevance filtering with 6 quick presets</li>
+<li><strong>Export Functionality:</strong> Generate compliance reports</li>
+<li><strong>Change Log:</strong> Track major regulatory updates</li>
+<li><strong>All Filters:</strong> Industry, Type, Legal Status, Political Status</li>
+<li><strong>Update Monitoring:</strong> Track last reviewed dates</li>
+</ul>
+<div class="p-3 bg-amber-50 border border-amber-200 rounded">
+<p class="font-semibold text-amber-900 text-sm">⚠️ Important</p>
+<p class="text-amber-800 text-sm mb-1">Always verify with official sources. Last updated: December 2025</p>
+<p class="text-amber-900 font-semibold text-sm">🚨 CSRD scope reduced by 85%, CSDDD by 70%</p>
+</div>
+</div>
+`;
+}
+
+// Initial render
+rend();
+
+// Use event delegation - attach ONE listener to #app that handles ALL inputs
+document.getElementById('app').addEventListener('input', function(e) {
+  const target = e.target;
+  if (target.id === 'search') {
+    ST.s = target.value;
+    rend();
+    // Restore focus and cursor position
+    const search = document.getElementById('search');
+    if (search) {
+      const pos = target.selectionStart;
+      search.value = ST.s;
+      search.setSelectionRange(pos, pos);
+      search.focus();
+    }
+  } else if (target.id === 'emp') {
+    ST.cs.e = target.value;
+    rend();
+  } else if (target.id === 'turn') {
+    ST.cs.t = target.value;
+    rend();
+  }
+});
+
+document.getElementById('app').addEventListener('change', function(e) {
+  const target = e.target;
+  if (target.id === 'list') {
+    ST.cs.li = target.checked;
+    rend();
+  } else if (target.id === 'fInd') {
+    ST.fi.i = target.value;
+    rend();
+  } else if (target.id === 'fTy') {
+    ST.fi.ty = target.value;
+    rend();
+  } else if (target.id === 'fSt') {
+    ST.fi.st = target.value;
+    rend();
+  } else if (target.id === 'fPs') {
+    ST.fi.ps = target.value;
+    rend();
+  }
+});
+
+</script>
+</body>
+</html>
